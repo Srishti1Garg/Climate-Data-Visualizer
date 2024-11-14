@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Climate Data Visualization</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Roboto', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #e0f2fe, #bae6fd);
+            min-height: 100vh;
+            padding: 0;
+        }
+
+        /* Navigation Styles */
+        .nav-container {
+            background-color: #334155;
+            padding: 1rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .nav-list {
+            max-width: 1200px;
+            margin: 0 auto;
+            list-style: none;
+            display: flex;
+            gap: 2rem;
+        }
+
+        .nav-list a {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 1.1rem;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+        }
+
+        .nav-list a:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        /* Existing Styles */
+        .container {
+            max-width: 1200px;
+            margin: 40px auto;
+            background-color: white;
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            color: #334155;
+            margin-bottom: 32px;
+            text-align: center;
+            font-weight: 700;
+            font-size: 36px;
+            padding-top: 40px;
+        }
+
+        .location-selector {
+            margin-bottom: 32px;
+            text-align: center;
+        }
+
+        select {
+            padding: 12px 20px;
+            font-size: 16px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background-color: white;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .charts-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 32px;
+            margin-top: 32px;
+        }
+
+        .chart-wrapper {
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .chart-wrapper h2 {
+            color: #475569;
+            margin-bottom: 20px;
+            font-weight: 700;
+            font-size: 20px;
+        }
+    </style>
+</head>
+<body>
+    
+    <header>
+        <h1>Climate Data Visualization</h1>
+    </header>
+
+    <div class="container">
+        <div class="location-selector">
+            <select id="locationSelect">
+                <option value="New York">New York</option>
+                <option value="London">London</option>
+                <option value="Tokyo">Tokyo</option>
+                <option value="Mumbai">Mumbai</option>
+                <option value="Delhi">Delhi</option>
+                <option value="Kolkata">Kolkata</option>
+                <option value="Chennai">Chennai</option>
+                <option value="Bangalore">Bangalore</option>
+                <option value="Jalandhar">Jalandhar</option>
+                <option value="Ahmedabad">Ahmedabad</option>
+                <option value="Pune">Pune</option>
+                <option value="Hyderabad">Hyderabad</option>
+                <option value="Jaipur">Jaipur</option>
+                <option value="Surat">Surat</option>
+            </select>
+        </div>
+
+        <div class="charts-container">
+            <div class="chart-wrapper">
+                <h2>Monthly Temperature</h2>
+                <canvas id="temperatureChart"></canvas>
+            </div>
+            <div class="chart-wrapper">
+                <h2>Monthly Precipitation</h2>
+                <canvas id="precipitationChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const climateData = {
+            'New York': {
+                months: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+                temperature: [0.3, 2.3, 6.7, 12.4, 18.2, 23.3, 25.8, 25.0, 20.8, 14.4, 8.8, 2.8],
+                precipitation: [92.7, 86.4, 101.6, 104.1, 106.7, 111.8, 116.8, 109.2, 108.7, 101.6, 99.1, 95.3]
+            },
+            'London': {
+                months: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+                temperature: [5.2, 5.3, 7.6, 9.9, 13.3, 16.4, 18.7, 18.5, 15.7, 12.1, 8.3, 5.9],
+                precipitation: [55.2, 40.9, 41.6, 43.7, 50.3, 45.1, 44.5, 49.4, 49.1, 71.1, 63.1, 56.9]
+            },
+            'Mumbai': {
+                months: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+                temperature: [25.4, 27.0, 29.3, 31.4, 32.2, 29.1, 27.4, 27.6, 28.5, 29.0, 27.7, 25.8],
+                precipitation: [5.9, 0.5, 0.2, 1.7, 26.2, 590.2, 645.0, 525.6, 356.2, 211.2, 33.3, 1.5]
+            },
+            'Delhi': {
+                months: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+                temperature: [14.1, 17.4, 23.1, 29.3, 34.0, 35.6, 32.7, 31.6, 29.4, 25.8, 19.7, 14.8],
+                precipitation: [19.4, 15.7, 17.0, 12.0, 23.2, 43.5, 210.4, 241.8, 104.2, 17.3, 4.3, 8.0]
+            },
+            'Ahmedabad': {
+                months: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+                temperature: [20.0, 22.6, 27.5, 31.6, 33.5, 32.2, 30.3, 29.6, 29.0, 28.5, 23.4, 20.6],
+                precipitation: [2.3, 0.6, 0.3, 1.1, 6.9, 80.3, 291.3, 235.1, 121.8, 26.4, 4.8, 1.6]
+            },
+            'Pune': {
+                months: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+                temperature: [20.3, 22.8, 25.7, 28.2, 28.8, 26.3, 24.7, 24.4, 24.6, 23.9, 22.3, 20.8],
+                precipitation: [1.4, 0.7, 0.9, 2.1, 40.3, 117.3, 144.8, 122.3, 124.9, 64.5, 16.7, 3.7]
+            },
+            'Hyderabad': {
+                months: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+                temperature: [22.2, 24.7, 28.5, 31.8, 32.9, 29.1, 26.3, 25.7, 25.6, 24.6, 23.5, 21.8],
+                precipitation: [6.1, 5.5, 15.0, 20.0, 41.6, 130.7, 179.4, 175.6, 132.8, 78.1, 14.2, 7.8]
+            },
+            'Jaipur': {
+                months: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+                temperature: [15.2, 18.2, 23.6, 29.6, 33.6, 34.0, 30.4, 29.0, 27.2, 23.6, 18.6, 14.8],
+                precipitation: [4.5, 3.1, 5.7, 5.9, 19.3, 58.4, 188.6, 178.2, 83.2, 9.1, 2.3, 1.6]
+            },
+            'Surat': {
+                months: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+                temperature: [23.0, 25.2, 28.8, 30.9, 31.3, 28.7, 27.4, 27.5, 27.2, 27.0, 25.5, 23.4],
+                precipitation: [0.8, 1.0, 0.9, 1.8, 12.3, 299.2, 625.3, 471.4, 246.5, 56.0, 9.3, 1.5]
+            },
+            'Jalandhar': {
+                months: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+                temperature: [11.0, 14.5, 20.3, 26.5, 32.0, 34.5, 32.8, 31.2, 29.0, 24.3, 18.0, 12.3],
+                precipitation: [15.2, 20.0, 30.4, 15.5, 45.2, 67.1, 243.5, 211.3, 90.5, 28.3, 10.6, 8.7]
+            }
+        };
+
+        const locationSelect = document.getElementById('locationSelect');
+        const temperatureCtx = document.getElementById('temperatureChart').getContext('2d');
+        const precipitationCtx = document.getElementById('precipitationChart').getContext('2d');
+
+        const temperatureChart = new Chart(temperatureCtx, {
+            type: 'line',
+            data: {
+                labels: climateData['New York'].months,
+                datasets: [{
+                    label: 'Temperature (°C)',
+                    data: climateData['New York'].temperature,
+                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                    borderColor: 'rgba(255, 99, 132, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: { responsive: true }
+        });
+
+        const precipitationChart = new Chart(precipitationCtx, {
+            type: 'bar',
+            data: {
+                labels: climateData['New York'].months,
+                datasets: [{
+                    label: 'Precipitation (mm)',
+                    data: climateData['New York'].precipitation,
+                    backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: { responsive: true }
+        });
+
+        locationSelect.addEventListener('change', function () {
+            const selectedCity = locationSelect.value;
+            const data = climateData[selectedCity];
+
+            temperatureChart.data.labels = data.months;
+            temperatureChart.data.datasets[0].data = data.temperature;
+            temperatureChart.update();
+
+            precipitationChart.data.labels = data.months;
+            precipitationChart.data.datasets[0].data = data.precipitation;
+            precipitationChart.update();
+        });
+    </script>
+</body>
+</html>
